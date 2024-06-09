@@ -1,16 +1,36 @@
+import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import ProtectRoutes from './components/auth/ProtectRoutes';
 import Navbar from './components/shared/Navbar';
+import { server } from './constants/config';
 import Error404 from './pages/Error404';
 import Home from './pages/Home';
 import Login from './pages/Login';
-import { useCookies } from 'react-cookie';
 import { SocketProvider } from './socket';
 
 const App = () => {
-  const [cookie, setCookie, removeCookie] = useCookies([]);
-  const [user, setUser] = useState(cookie['EchoToken'] ? true : false);
+  const [user, setUser] = useState(false);
+  //fetch token from backend
+  const fetchToken = async () => {
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      withCredentials: true,
+    };
+
+    try {
+      const { data } = await axios.get(`${server}/user/token`, config);
+      setUser(data.success);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchToken();
+  }, []);
 
   return (
     <BrowserRouter>

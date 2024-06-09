@@ -69,17 +69,21 @@ const ChatList = ({
             {lastMessage}
           </Typography>
         </Grid>
-        {isOnline ? (
-          <Grid
-            item
-            xs={1}
-            sx={{display: 'flex', alignItems: 'center', justifyContent: "center"}}
-          >
+        <Grid
+          item
+          xs={1}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {isOnline ? (
             <CircleIcon
               sx={{ color: palette.primary.success, fontSize: 20, mx: 1 }}
             />
-          </Grid>
-        ) : null}
+          ) : null}
+        </Grid>
 
         <Grid
           item
