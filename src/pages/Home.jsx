@@ -3,8 +3,9 @@ import React, { useEffect, useState } from 'react';
 import LoaderHome from '../components/layout/LoaderHome';
 import Chat from '../components/specific/Chat';
 import { getSocket } from '../socket';
+import LoaderPage from './LoaderPage';
 
-const Home = () => {
+const Home = ({user, isLoading}) => {
   const [flag, setFlag] = useState(false);
   useEffect(() => {
 
@@ -13,7 +14,7 @@ const Home = () => {
 
   return (
     <Box sx={{ height: '90vh' }}>
-      <Chat />
+      {!isLoading?<Chat />:<LoaderPage/>}
     </Box>
   );
 };

@@ -7,7 +7,13 @@ import { server } from '../../constants/config';
 import { palette } from '../../themes/dark';
 import MyTextField2 from '../../themes/standardInput';
 import TextBubble from './TextBubble';
-import { CHAT_OPENED, IS_ONLINE, NEW_MESSAGE } from '../../constants/events';
+import {
+  CHAT_OPENED,
+  IS_NOT_TYPING,
+  IS_ONLINE,
+  IS_TYPING,
+  NEW_MESSAGE,
+} from '../../constants/events';
 import CircleIcon from '@mui/icons-material/Circle';
 import ScrollToBottom from 'react-scroll-to-bottom';
 
@@ -25,10 +31,12 @@ const Message = ({
   const [inputMessage, setInputMessage] = useState('');
   const [user, setUser] = useState('');
   const [page, setPage] = useState(1);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingTimeout, setTypingTimeout] = useState(null);
+  const hasMounted = useRef(false);
 
   const scrollToBottomRef = useRef(null);
   const infiniteScrollRef = useRef(null);
-
   // const [isTyping, setIsTyping] = useState(false);
   const handleClose = () => {
     setIsOpen(false);
@@ -67,55 +75,55 @@ const Message = ({
       members: members,
       content: inputMessage,
     });
+    socket.emit(IS_NOT_TYPING, { chat_id: chatId, user_id: myUserId, members: members });
     setInputMessage('');
+  };
+
+  const handleTypingStatus = () => {
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
+
+    socket.emit(IS_TYPING, { chat_id: chatId, user_id: myUserId, members: members });
+
+    setTypingTimeout(
+      setTimeout(() => {
+        socket.emit(IS_NOT_TYPING, { chat_id: chatId, user_id: myUserId, members: members });
+      }, 1000)
+    );
   };
 
   useEffect(() => {
     fetchMessages();
-    socket.on(NEW_MESSAGE, (data) => {
-      setMessages((prevMessages) => [data, ...prevMessages]);
+    socket.on(NEW_MESSAGE, ({ messageForRealtime, chat_id }) => {
+      fetchMessages();
+      if (chatId === chat_id)
+        setMessages((prevMessages) => [messageForRealtime, ...prevMessages]);
     });
-    
+
+    socket.on(IS_TYPING, ({ chat_id, user_id, members }) => {
+      if (chatId.toString() === chat_id.toString()) {
+        setIsTyping(true);
+      }
+    });
+
+    socket.on(IS_NOT_TYPING, ({ chat_id, user_id, members }) => {
+      if (chatId.toString() === chat_id.toString()) {
+        setIsTyping(false);
+      }
+    });
+
     return () => {
       socket.off(NEW_MESSAGE);
+      socket.off(IS_NOT_TYPING);
+      socket.off(IS_TYPING);
     };
   }, [chatId]);
 
   // useEffect(() => {
-  //   if (scrollToBottomRef.current) {
-  //     scrollToBottomRef.current.scrollIntoView({ behavior: 'smooth' });
-  //   }
-
-  //   return () => {};
-  // }, [messages]);
-
-  // useEffect(() => {
-  //   const handleScroll = () => {
-  //     if (infiniteScrollRef.current) {
-  //       // Check if the scrollbar is at or near the top
-  //       if (infiniteScrollRef.current.scrollTop === 0) {
-  //         console.log('Scrolled to the top');
-  //         setPage((prev) => prev + 1);
-  //         // setPage((prev) => prev + 1); // Assuming you want to increment the page
-  //       }
-  //     }
-  //   };
-
-  //   const divElement = infiniteScrollRef.current;
-  //   divElement.addEventListener('scroll', handleScroll);
-  //   console.log('Event listener added');
-
-  //   return () => {
-  //     divElement.removeEventListener('scroll', handleScroll);
-  //     console.log('Event listener removed');
-  //   };
-  // }, []);
-
-  // useEffect(() => {
-  //   fetchMessages(page);
-
-  //   return () => {};
-  // }, [page]);
+  //   if(hasMounted.current) handleTypingStatus();
+  //   else hasMounted.current = true;
+  // }, [inputMessage]);
 
   return (
     <Paper
@@ -142,9 +150,16 @@ const Message = ({
         borderRadius={0.5}
       >
         <Box
-          sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems:'baseline',
+            justifyContent: 'center',
+          }}
         >
           <Typography variant="h6">{name}</Typography>
+          <Typography sx={{ml:1}} color={palette.primary.success} variant="caption">{isTyping? 'is typing...' : ''}</Typography>
+
           {/* {isTyping?<Typography variant="caption" color={palette.secondary.text}>typing...</Typography>:null} */}
         </Box>
         <CloseIcon
@@ -203,6 +218,7 @@ const Message = ({
               fullWidth={true}
               value={inputMessage}
               fun={setInputMessage}
+              handleTypingStatus={handleTypingStatus}
             />
           </Grid>
           <Grid

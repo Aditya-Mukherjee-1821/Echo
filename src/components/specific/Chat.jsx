@@ -16,6 +16,7 @@ import {
   NEW_MESSAGE_ALERT,
   REFETCH_CHATS,
 } from '../../constants/events';
+import ChatLoader from '../layout/ChatLoader';
 
 const Chat = () => {
   const socket = getSocket();
@@ -27,6 +28,7 @@ const Chat = () => {
   const [alertId, setAlertId] = useState('');
   const [myUserId, setMyUserId] = useState('');
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleClick = (chatId, name, members) => {
     setChatId(chatId);
@@ -49,6 +51,7 @@ const Chat = () => {
       // console.log(transformedChats);
       setChats(transformedChats[0]);
       setMyUserId(transformedChats[1]);
+      setIsLoading(false);
     } catch (err) {
       console.log(err);
     }
@@ -88,6 +91,7 @@ const Chat = () => {
             display: { xs: isOpen ? 'none' : 'block', sm: 'block' },
           }}
         >
+          {isLoading ? <ChatLoader /> : null}
           {chats.length ? (
             <Stack>
               {chats &&

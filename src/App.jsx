@@ -10,7 +10,8 @@ import Login from './pages/Login';
 import { SocketProvider } from './socket';
 
 const App = () => {
-  const [user, setUser] = useState(false);
+  const [user, setUser] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   //fetch token from backend
   const fetchToken = async () => {
     const config = {
@@ -23,6 +24,7 @@ const App = () => {
     try {
       const { data } = await axios.get(`${server}/user/token`, config);
       setUser(data.success);
+      setIsLoading(false);
     } catch (err) {
       console.log(err);
     }
@@ -57,8 +59,9 @@ const App = () => {
                 <Navbar
                   user={user}
                   setUser={setUser}
+                  isLoading={isLoading}
                 />
-                <Home />
+                <Home user={user} isLoading={isLoading} />
               </ProtectRoutes>
             </SocketProvider>
           }

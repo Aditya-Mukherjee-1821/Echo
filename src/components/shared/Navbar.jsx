@@ -13,7 +13,7 @@ import { palette } from '../../themes/dark';
 import { getSocket } from '../../socket';
 import { NEW_REQUEST } from '../../constants/events';
 
-const Navbar = ({ user, setUser }) => {
+const Navbar = ({ user, setUser, isLoading }) => {
   const socket = getSocket();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -57,7 +57,7 @@ const Navbar = ({ user, setUser }) => {
     };
   }, []);
 
-  return (
+  if(!isLoading) return (
     <Fragment>
       <Box
         sx={{

@@ -2,7 +2,7 @@ import { TextField } from '@mui/material';
 import React from 'react';
 import { palette } from './dark';
 
-const MyTextField2 = ({ multiline, maxRows, fullWidth, value, label, fun }) => {
+const MyTextField2 = ({ multiline, maxRows, fullWidth, value, label, fun, handleTypingStatus }) => {
   return (
     <TextField
       multiline={multiline}
@@ -11,6 +11,7 @@ const MyTextField2 = ({ multiline, maxRows, fullWidth, value, label, fun }) => {
       value={value}
       onChange={(e) => {
         fun(e.target.value);
+        handleTypingStatus();
       }}
       label={label}
       variant="standard"
